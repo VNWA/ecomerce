@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+@media print {
+	body {
+		margin: 0 !important;
+	}
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #443f3f;
+    font-family: "Lato", sans-serif;
+    line-height: 1.3;
+}
+
+a {
+    cursor: pointer;
+}
+
+h6 a {
+    font-family: "Lato", sans-serif;
+}
+
+.menu-hover {
+    position: absolute;
+    top: 100%;
+    background-color: black;
+    color: white;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    width: 200px;
+}
+
+li:hover .menu-hover {
+    top: 120%; /* Trượt xuống dưới */
+    opacity: 1; /* Hiển thị */
+    visibility: visible; /* Hiển thị khi hover */
+}
+
+/* Thay đổi này để submenu hiển thị khi hover vào li */
+.menu-hover li:hover .submenu-hover {
+    left: -150px; /* Hiển thị submenu ở bên trái */
+    opacity: 1;
+    visibility: visible;
+}
+
+.submenu-hover {
+    position: absolute;
+    top: 0;
+    left: -150px; /* Bên trái */
+    background-color: #000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    width: 150px;
+}
+
+.menu-hover li:hover .submenu-hover {
+    opacity: 1;
+    visibility: visible;
+}
+
+.submenu-hover li:hover {
+    background-color: #EF4444;
+}
+/* MENU MOBILE */
+.nav-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Menu chiếm 70% chiều rộng màn hình */
+    height: 100%;
+    background-color: #fff;
+    transform: translateX(-100%);
+    /* Ẩn menu hoàn toàn khỏi màn hình bên trái */
+    transition: transform 0.4s ease-in-out;
+    /* Hiệu ứng chuyển động mượt mà */
+    z-index: 49;
+  }
+
+  /* Khi menu được kích hoạt (hiển thị) */
+  .nav-menu.active {
+    transform: translateX(0);
+    /* Đẩy menu vào màn hình */
+  }
