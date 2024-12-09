@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full h-full mb-3 text-black">
+    <div class="w-full h-full mb-3 text-black" v-if="isLayoutReady">
 
 
         <div v-if="isModalShortCode"
@@ -36,15 +36,17 @@
         <div class="w-full h-full py-2 px-1 flex gap-4 items-center">
             <button @click="openFileManager"
                 class="flex gap-4 items-center px-4 py-2 border border-black hover:bg-purple-500/90 hover:text-white uppercase font-bold">
-                <icon :icon="['fas', 'image']" /> Insert Image
+                <Icon icon="fa6-solid:image" /> File Manager
             </button>
             <button @click="isModalShortCode = true"
                 class="flex gap-4 items-center px-4 py-2 border border-black hover:bg-purple-500/90 hover:text-white uppercase font-bold">
-                <icon :icon="['fas', 'image']" /> UI Block
+                <icon icon="fluent:code-block-16-filled" /> UI Block
             </button>
         </div>
 
-        <ckeditor v-model="editer_data" :config="config" :editor="editor" @ready="onReady"></ckeditor>
+        <div>
+            <ckeditor v-model="editer_data" :config="config" :editor="editor" @ready="onReady"></ckeditor>
+        </div>
     </div>
 
 </template>
@@ -126,6 +128,29 @@ watch(computedModelValue, (newData) => {
 watch(editer_data, (newData) => {
     emit('update:modelValue', newData);
 });
+
+const shortcodes = ref([
+    {
+        "name": "Hero Section ",
+        "desc": "Helo Section",
+        "image": "",
+        "url": route('UiBlock.HeroSection')
+    },
+    {
+        "name": "Step Slides ",
+        "desc": "Step Slides ",
+        "image": "",
+        "url": route('UiBlock.StepSlide')
+    },
+    {
+        "name": "Youtube Videos ",
+        "desc": "Youtube Videos ",
+        "image": "",
+        "url": route('UiBlock.YoutubeVideos')
+    }
+]
+)
+const isModalShortCode = ref(false)
 const isLayoutReady = ref(false)
 const config = ref(null)
 const editor = ClassicEditor
@@ -139,44 +164,7 @@ const onReady = (editor) => {
     );
 };
 
-const handleDataFromChild = (data) => {
-    if (data.length > 0) {
-        if (editorInstance.value) {
-            editorInstance.value.model.change(writer => {
-                data.forEach(file => {
-                    const imageElement = writer.createElement('imageBlock', {
-                        src: file.path,
-                        alt: 'vinawebapp.com'
-                    });
 
-                    const selection = editorInstance.value.model.document.selection;
-
-                    if (selection.isCollapsed) {
-                        editorInstance.value.model.insertContent(imageElement, selection);
-                    } else {
-                        const endPosition = editorInstance.value.model.createPositionAt(editorInstance.value.model.document.getRoot(), 'end');
-                        writer.setSelection(endPosition);
-                        editorInstance.value.model.insertContent(imageElement, endPosition);
-                    }
-                });
-            });
-        } else {
-            console.log('Editor instance is not ready');
-        }
-        isModal.value = false;
-    } else {
-        console.warn("Received data is empty.");
-    }
-};
-
-
-const handleShortcodeSubmit = (shortcode) => {
-    isModalShortCode.value = false
-    selectedComponent.value = null
-    if (editorInstance.value) {
-        editorInstance.value.execute('htmlEmbed', shortcode);
-    }
-}
 onMounted(() => {
     config.value = {
         toolbar: {
@@ -357,6 +345,103 @@ onMounted(() => {
 
     isLayoutReady.value = true;
 })
+const openFileManager = () => {
+    isModalShortCode.value = false;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    window.open(
+        route('Media.Popup'),
+        '_blank',
+        `width=${width},height=${height},top=0,left=0`
+    );
 
+    const handleMessage = (event) => {
+        if (event.origin !== window.location.origin) return; // Kiểm tra bảo mật
+        const files = event.data;
+
+        if (Array.isArray(files) && files.length > 0) {
+            window.removeEventListener('message', handleMessage);
+
+
+            if (editorInstance.value) {
+                editorInstance.value.model.change(writer => {
+                    files.forEach(file => {
+                        const imageElement = writer.createElement('imageBlock', {
+                            src: file.path,
+                            alt: 'vinawebapp.com'
+                        });
+
+                        const selection = editorInstance.value.model.document.selection;
+
+                        if (selection.isCollapsed) {
+                            editorInstance.value.model.insertContent(imageElement, selection);
+                        } else {
+                            const endPosition = editorInstance.value.model.createPositionAt(editorInstance.value.model.document.getRoot(), 'end');
+                            writer.setSelection(endPosition);
+                            editorInstance.value.model.insertContent(imageElement, endPosition);
+                        }
+                    });
+                });
+            } else {
+                console.log('Editor instance is not ready');
+            }
+
+
+
+
+        } else {
+            console.log("VNWA File Manager Popup Run ....")
+        }
+    };
+
+    // Đăng ký sự kiện message
+    window.addEventListener('message', handleMessage);
+
+    // Hủy đăng ký sự kiện khi component bị unmount
+    onBeforeUnmount(() => {
+        window.removeEventListener('message', handleMessage);
+    });
+};
+
+const openUiBlockPopup = (url) => {
+    isModalShortCode.value = false;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    window.open(
+        url,
+        '_blank',
+        `width=${width},height=${height},top=0,left=0`
+    );
+
+    const handleMessage = (event) => {
+        if (event.origin !== window.location.origin) return; // Kiểm tra bảo mật
+        const shortcode = event.data; // Lấy shortcode từ event.data
+        if (typeof shortcode === 'string' && shortcode.trim()) {
+            if (editorInstance.value) {
+                editorInstance.value.execute('htmlEmbed', shortcode);
+            }
+
+            window.removeEventListener('message', handleMessage);
+        } else {
+            console.log("VNWA UI Block Popup Running ....");
+        }
+    };
+
+    // Đăng ký sự kiện message
+    window.addEventListener('message', handleMessage);
+
+    // Hủy đăng ký sự kiện khi component bị unmount
+    onBeforeUnmount(() => {
+        window.removeEventListener('message', handleMessage);
+    });
+};
 
 </script>
+<style>
+.ck-editor__editable {
+    min-height: 700px;
+    max-height: 1200px;
+    overflow-y: scroll;
+}
+</style>

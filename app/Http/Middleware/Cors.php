@@ -16,7 +16,7 @@ class Cors
     public function handle(Request $request, Closure $next): Response
     {
         return $next($request)
-        ->header('Access-Control-Allow-Origin', env('FRONTEND_URL')) // hoặc địa chỉ frontend của bạn
+        ->header('Access-Control-Allow-Origin', '*') // hoặc địa chỉ frontend của bạn
         ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }

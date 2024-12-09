@@ -46,7 +46,7 @@
                             class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-2 rounded mr-4 text-xs flex items-center justify-center gap-2"
                             :class="{ 'bg-red-600/60 hover:bg-red-600/60': itemsSelected.length === 0 }"
                             @click="remove">
-                            <Icon icon="fa6-solid:x" class="mr-1" /> Clear data selection
+                            <Icon icon="material-symbols:close-rounded"   class="mr-1" /> Clear data selection
                         </button> -->
                         </div>
                         <div>
@@ -54,7 +54,7 @@
                         </div>
                     </div>
                     <div>
-                        <DataTable :headers="headers" :items="table" :isTableLoading="isTableLoading" buttons-pagination
+                        <DataTable :headers="headers" :items="table" :isLoading="loading" buttons-pagination
                             show-index alternating border-cell>
                             <template #item-profile="{ name, origin, sku, stock, brand_name }">
                                 <div class="w-36">

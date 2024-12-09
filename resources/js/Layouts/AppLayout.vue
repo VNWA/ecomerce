@@ -10,6 +10,7 @@ import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import Sidebar from '@/Components/Sidebar/Sidebar.vue';
 import ActionLoading from '@/Components/ActionLoading.vue';
 import '../../css/admin.css';
+import DatabaseChange from '@/Components/DatabaseChange.vue';
 
 
 defineProps({
@@ -59,6 +60,21 @@ const backupData = () => {
             alert('Có lỗi xảy ra trong quá trình backup.');
         });
 }
+
+
+
+const dbs = [
+    {
+        code: 'es_db',
+        name: 'Spanish',
+        image: '/images/nation/es.webp'
+    },
+    {
+        code: 'en_db',
+        name: 'England',
+        image: '/images/nation/en.webp'
+    }
+]
 
 
 </script>
@@ -126,8 +142,6 @@ const backupData = () => {
                                                 <div class="block px-4 py-2 text-xs text-gray-400">
                                                     Manage Team
                                                 </div>
-
-                                                <!-- Team Settings -->
                                                 <DropdownLink
                                                     :href="route('teams.show', $page.props.auth.user.current_team)">
                                                     Team Settings
@@ -172,15 +186,27 @@ const backupData = () => {
                                     </Dropdown>
                                 </div>
                                 <div class="flex items-center gap-6">
+                                    <div class=" relative">
+                                        <DatabaseChange />
+                                    </div>
+
+                                    <Link :href="route('Ecommerce.Order')">
+                                    <button class="relative h-10 w-10 border">
+                                        <!-- <span class="text-[12px] flex items-center justify-center font-bold text-white w-5 h-5  -top-2 -right-3 rounded-full bg-black absolute">
+                                                1
+                                            </span> -->
+                                        <Icon icon="material-symbols:garden-cart-rounded" class="text-xl" />
+
+                                    </button>
+                                    </Link>
                                     <a :href="$page.props.frontend_url" target="_blank">
                                         <button
                                             class="flex items-center justify-center gap-4 px-3 py-2 bg-cyan-500 text-white shadow-2xl shadow-black border border-purple-500">
-                                            <Icon icon="fa6-solid:shop"/>
-
+                                            <Icon icon="fa6-solid:shop" />
                                         </button>
                                     </a>
-                                    <button class="px-3 py-2  text-white shadow-2xl  border bg-purple-500"
-                                        @click="backupData">Backup Data</button>
+                                    <!-- <button class="px-3 py-2  text-white shadow-2xl  border bg-purple-500"
+                                        @click="backupData">Backup Data</button> -->
                                 </div>
                                 <!-- Settings Dropdown -->
                                 <div class="ms-3 relative">

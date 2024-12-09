@@ -48,9 +48,9 @@ class ColorController extends Controller
     }
     function showEdit($id)
     {
-        $brand = Color::find($id);
+        $color = Color::find($id);
 
-        return Inertia::render('Admin/Ecommerce/Color/Edit', ['brand' => $brand]);
+        return Inertia::render('Admin/Ecommerce/Color/Edit', ['color' => $color]);
     }
     function update(Request $request, $id)
     {
@@ -62,8 +62,8 @@ class ColorController extends Controller
         ]);
 
         try {
-            $brand = Color::find($id);
-            $brand->update($request->all());
+            $color = Color::find($id);
+            $color->update($request->all());
             return response()->json(['message' => 'Update Color Success'], 200);
 
         } catch (\Throwable $th) {

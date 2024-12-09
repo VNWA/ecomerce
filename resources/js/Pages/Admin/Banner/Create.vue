@@ -147,7 +147,7 @@ const submit = (isRollBack = true) => {
         toast.success(response.data.message);
         isPageLoading.value = false;
         if (!isRollBack) {
-            window.history.back();
+            window.close();
         } else {
             form.value.name = ''
             form.value.image = ''

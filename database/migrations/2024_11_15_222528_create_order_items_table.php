@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('set null');
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
             $table->string('image');
             $table->string('name');

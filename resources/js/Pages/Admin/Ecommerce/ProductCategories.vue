@@ -129,7 +129,7 @@
                                                 </div>
                                                 <Icon
                                                     v-if="!isSlugLoading && form.slug.trim().length > 0 && errors.name.trim().length <= 0 && errors.slug.trim().length > 0"
-                                                    class="text-red-500 font-bold text-lg" icon="fa6-solid:x" />
+                                                    class="text-red-500 font-bold text-lg" icon="material-symbols:close-rounded"   />
                                                 <Icon
                                                     v-else-if="!isSlugLoading && form.slug.trim().length > 0 && errors.name.trim().length <= 0 && errors.slug.trim().length <= 0"
                                                     class="text-green-500 font-bold text-lg" icon="fa6-solid:check" />
@@ -149,13 +149,6 @@
                                     <InputLabel for="desc" value="Description" />
                                     <InputDesc id="desc" v-model="form.desc" class="mt-1 block w-full" />
                                     <InputError class="mt-2" :message="errors.desc" />
-                                </div>
-                                <div class="mb-4">
-                                    <InputLabel for="InputSelectedIcon" value="Icon" />
-                                    <InputSelectedIcon id="InputSelectedIcon"
-                                        class="mt-1 block w-full border border-solid border-black h-10"
-                                        v-model="form.icon" />
-                                    <InputError class="mt-2" :message="errors.icon" />
                                 </div>
                                 <div class="mb-4">
                                     <InputLabel for="InputUrlImage" value="Image" />
@@ -187,7 +180,7 @@
                                             class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500   focus:ring-2  "
                                             v-model="form.is_highlight" :true-value="1" :false-value="0" />
 
-                                        <label for="bordered-checkbox-1"
+                                        <label for="is_highlight"
                                             class="w-full py-2 ms-2 text-sm font-medium text-gray-900  cursor-pointer">
                                             Hot
                                         </label>
@@ -197,7 +190,7 @@
                                             class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500   focus:ring-2  "
                                             v-model="form.is_header" :true-value="1" :false-value="0" />
 
-                                        <label for="bordered-checkbox-1"
+                                        <label for="is_header"
                                             class="w-full py-2 ms-2 text-sm font-medium text-gray-900  cursor-pointer">
                                             Is Header Menu
                                         </label>
@@ -208,7 +201,7 @@
                                                 class="border text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500   focus:ring-2  "
                                                 v-model="form.header_bg" />
 
-                                            <label for="bordered-checkbox-1"
+                                            <label for="is_header_sub_colors"
                                                 class="w-full py-2 ms-2 text-sm font-medium text-gray-900  cursor-pointer">
                                                 Background (RBG : 0 0 0 is default)
                                             </label>
@@ -219,7 +212,7 @@
                                                 class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500   focus:ring-2  "
                                                 v-model="form.is_header_sub_colors" :true-value="1" :false-value="0" />
 
-                                            <label for="bordered-checkbox-1"
+                                            <label for="is_header_sub_colors"
                                                 class="w-full py-2 ms-2 text-sm font-medium text-gray-900  cursor-pointer">
                                                 Is Sub Header Menu Brands
                                             </label>
@@ -263,8 +256,6 @@ import InputText from '@/Components/Input/InputText.vue';
 import InputError from '@/Components/InputError.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import SecondaryButton from '@/Components/PrimaryButton.vue';
-import Checkbox from '@/Components/Checkbox.vue';
-import InputSelectedIcon from '@/Components/Input/InputSelectedIcon.vue';
 import InputDesc from '@/Components/Input/InputDesc.vue'
 import InputUrlImage from '@/Components/Input/InputUrlImage.vue'
 import InputTreeSelect from '@/Components/Input/InputTreeSelect.vue'

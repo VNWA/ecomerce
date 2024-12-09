@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App;
 use App\Http\Controllers\Controller;
 
 use Carbon\Carbon;
+use Config;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +14,33 @@ use Storage;
 use ZipArchive;
 class VinawebappController extends Controller
 {
+    public function changeDatabase(Request $request)
+    {
+        $request->validate([
+            'db_connection' => 'required|string|in:en_db,es_db', // Các connection hợp lệ
+        ]);
 
+        // Lưu kết nối vào session
+        session(['db_connection' => $request->input('db_connection')]);
+        $request->session()->flash('flash.banner', 'Change Database Connection Success :' . $request->input('db_connection'));
+        $request->session()->flash('flash.bannerStyle', 'success');
+        return redirect('/vnwa');
+    }
+    public function showConfig()
+    {
+        $environment = Config::all();
+        dd($environment);
+    }
+    public function updateConfig()
+    {
+        return 1;
+
+    }
+    public function DbConnectInfo()
+    {
+        $currentConnection = DB::getDefaultConnection();
+        return response()->json(['info' => $currentConnection], 200);
+    }
     public function createBackup()
     {
         try {

@@ -122,7 +122,7 @@
                     </div>
                     <div v-if="itemsDelete.length > 0">
                         <div class="flex items-center" v-for="item in itemsDelete">
-                            <Icon icon="fa6-solid:x" /> class="text-red-600 mr-1" /> <span>{{ item.name }}</span>
+                            <Icon icon="material-symbols:close-rounded"   /> class="text-red-600 mr-1" /> <span>{{ item.name }}</span>
                         </div>
                     </div>
 

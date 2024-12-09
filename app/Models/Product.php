@@ -43,11 +43,16 @@ class Product extends Model
     ];
 
 
-    protected $appends = ['price_new', 'is_new']; // Thêm price_new vào JSON
 
-    /**
-     * Accessor cho `price_new`
-     */
+    protected $appends = ['price_new', 'is_new', 'sell']; // Thêm price_new vào JSON
+
+
+    public function getSellAttribute()
+    {
+        // Lấy tổng số lượng sản phẩm đã bán dựa trên ID sản phẩm
+        return OrderItem::where('product_id', $this->id) // `$this->id` là ID của sản phẩm hiện tại
+            ->sum('quantity'); // `qnt` là số lượng đã bán
+    }
     public function getIsNewAttribute()
     {
         // Chuyển đổi 'created_at' thành Carbon, sử dụng định dạng ngày tháng của bạn
@@ -150,5 +155,7 @@ class Product extends Model
             return $date->format('d/m/Y');
         }
     }
+
+
 
 }

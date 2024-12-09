@@ -9,6 +9,9 @@ use Illuminate\Routing\Controller as BaseController;
 class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;
+
+
+
     public function formatPhone($phone)
     {
         return substr($phone, 0, 2) . '****' . substr($phone, -2);

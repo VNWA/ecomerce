@@ -68,7 +68,7 @@
                                                                 </div>
                                                                 <button type="button" @click="removeFromCart(item.sku)"
                                                                     class="h-8 w-8 me-3 flex items-center justify-center bg-red-600 rounded-md">
-                                                                    <Icon icon="fa6-solid:fa-x"  class="text-white" />
+                                                                    <Icon icon="material-symbols:close-rounded"  class="text-white" />
                                                                 </button>
                                                             </div>
                                                         </ProductItem>
@@ -90,7 +90,7 @@
                                                             <ProductItem :product="item">
                                                                 <button type="button" @click="addToCart(item)"
                                                                     class="h-8 w-8 me-3 flex items-center justify-center bg-green-600 rounded-md">
-                                                                    <Icon icon="fa6-solid:fa-plus"
+                                                                    <Icon icon="material-symbols:add"
                                                                         class="text-white" />
                                                                 </button>
                                                             </ProductItem>

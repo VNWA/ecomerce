@@ -67,7 +67,7 @@
                     <div class="mt-6 w-full text-center">
                         <button @click="updateData"
                             class="bg-purple-500  hover:bg-purple-900 hover:text-white  py-2 px-5 rounded-sm text-white text-nowrap ms-3 ">
-                            <Icon icon="fa6-solid:save" />
+                            <Icon icon="material-symbols:sync-saved-locally" />
                             Save
                         </button>
                     </div>

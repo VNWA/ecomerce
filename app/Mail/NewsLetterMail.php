@@ -17,6 +17,12 @@ class NewsLetterMail extends Mailable
     /**
      * Create a new message instance.
      */
+    public $origin; // Dữ liệu đơn hàng
+    public function __construct($origin)
+    {
+        $this->origin = $origin;
+    }
+
     public function envelope(): Envelope
     {
         $appName = env('APP_NAME', 'Vinawebapp.com');
@@ -39,7 +45,7 @@ class NewsLetterMail extends Mailable
         return new Content(
             view: 'emails.news_letter',
             with: [
-                'url' => env('FRONTEND_URL', 'https://vinawebapp.com'),
+                'url' => $this->origin,
                 'logo' => $logo['logo_full'] ?? 'https://file.vinawebapp.com/uploads/images/Company/vnwaLogoFull.png',
                 'company_name' => env('APP_NAME', 'Vinawebapp.com'),
                 'profile' => $profile,

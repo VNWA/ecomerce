@@ -56,21 +56,21 @@
                                                 <div class="flex items-center justify-between mb-5">
                                                     <input type="text" v-model="item.name"
                                                         class="border-none font-bold text-black/90 w-full">
-                                                    <Icon icon="fa6-solid:x" />
+                                                    <Icon icon="material-symbols:close-rounded"
                                                         class="hover:text-red-500 cursor-pointer ms-3"
                                                         @click="removeColumn(index)" />
                                                 </div>
                                                 <ul class="w-full text-sm text-black/80">
 
-                                                    <li class="mb-2 ps-3" v-for="(value, n) in item.value" :key="n" >
-                                                        <div class="flex items-center justify-between gap-5 ">
+                                                    <li class="mb-2 ps-3" v-for="(value, n) in item.value" :key="n">
+                                                        <div class="flex items-center justify-between gap-2 ">
                                                             <h3> {{ value.name }} </h3>
-                                                            <div>
+                                                            <div class="flex items-center justify-center gap-4">
                                                                 <Icon icon="fa6-solid:pen"
                                                                     class="hover:text-yellow-500 cursor-pointer"
                                                                     @click="openEditChild(index + '_' + n)"
                                                                     :class="{ 'text-yellow-500': isShowFormEdit == index + '_' + n }" />
-                                                                <Icon icon="fa6-solid:x" />
+                                                                <Icon icon="material-symbols:close-rounded"
                                                                     class="hover:text-red-500 cursor-pointer ms-3"
                                                                     @click="removeChild(index, n)" />
                                                             </div>
@@ -104,7 +104,7 @@
                                                             :class="{ 'text-green-500': isFormAddChild == index }">
                                                             <h3> Add New Child </h3>
                                                             <div>
-                                                                <Icon icon="fa6-solid:plus"  />
+                                                                <Icon icon="fa6-solid:plus" />
 
                                                             </div>
                                                         </div>
@@ -156,7 +156,7 @@
                     <div class="mt-6 w-full text-center">
                         <button @click="updateData"
                             class="bg-purple-500  hover:bg-purple-900 hover:text-white  py-2 px-5 rounded-sm text-white text-nowrap ms-3 ">
-                            <Icon icon="fa6-solid:save" />
+                            <Icon icon="material-symbols:sync-saved-locally" />
                             Save
                         </button>
                     </div>

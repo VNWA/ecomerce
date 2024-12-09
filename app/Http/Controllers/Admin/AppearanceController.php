@@ -3,12 +3,19 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\MetaSEO;
 use Illuminate\Http\Request;
 
 use App\Models\Appearance;
 use App\Models\Product;
 class AppearanceController extends Controller
 {
+    protected $metaSEO;
+
+    public function __construct(MetaSEO $metaSEO)
+    {
+        $this->metaSEO = $metaSEO;
+    }
 
     public function loadJsonDataHome()
     {
@@ -64,8 +71,10 @@ class AppearanceController extends Controller
     }
     function updateProfile(Request $request)
     {
+
         try {
             Appearance::where('type', 'profile')->update(['value' => $request->data]);
+            $this->metaSEO->refreshCache();
             return response()->json(['message' => 'Update Porifie Company  Success'], 200);
         } catch (\Throwable $th) {
             return response()->json(['message' => 'Update Porifie Company  Failing'], 500);

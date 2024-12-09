@@ -22,7 +22,7 @@
                                     class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-2 rounded mr-4 text-xs flex items-center justify-center gap-2"
                                     :class="{ 'bg-red-600/60 hover:bg-red-600/60': itemsSelected.length === 0 }"
                                     @click="showisModalDeleteMutipleItem">
-                                    <Icon icon="fa6-solid:x" class="mr-1" /> Clear data selection
+                                    <Icon icon="material-symbols:close-rounded"   class="mr-1" /> Clear data selection
                                 </button>
                             </div>
                             <div class=" text-xs uppercase">
@@ -68,7 +68,7 @@
                         </div>
                         <div class="my-2 ">
                             <DataTable :key="reRender" v-model:server-options="serverOptions" :headers="headers"
-                                :items="items" :server-items-length="serverItemsLength" :isTableLoading="isTableLoading"
+                                :items="items" :server-items-length="serverItemsLength" :loading="isTableLoading"
                                 buttons-pagination show-index v-model:items-selected="itemsSelected">
                                 <template #item-image="{ image }">
                                     <div class="py-2">
@@ -134,7 +134,7 @@
                                     <div class="mt-4"></div>
                                     <div v-if="itemsDelete.length > 0">
                                         <div class="flex items-center" v-for="item in itemsDelete" :key="item.id">
-                                            <Icon icon="fa6-solid:x" /> class="text-red-600 mr-1" /> <span>{{ item.name
+                                            <Icon icon="material-symbols:close-rounded"   /> class="text-red-600 mr-1" /> <span>{{ item.name
                                                 }}</span>
                                         </div>
                                     </div>

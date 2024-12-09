@@ -9,10 +9,10 @@
 
             </div>
             <div class="editor-container editor-container_classic-editor editor-container_include-block-toolbar"
-                ref="editorContainerElement">
+                ref="editorContainerElement" >
                 <div class="editor-container__editor">
-                    <div ref="editorElement">
-                        <ckeditor v-model="editer_data" :config="config" :editor="editor" @ready="onReady"></ckeditor>
+                    <div ref="editorElement" >
+                        <ckeditor v-model="editer_data"   :config="config" :editor="editor" @ready="onReady"></ckeditor>
                     </div>
                 </div>
             </div>

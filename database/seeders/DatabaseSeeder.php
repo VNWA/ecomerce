@@ -23,7 +23,8 @@ class DatabaseSeeder extends Seeder
             BrandSeeder::class,
             ColorSeeder::class,
             ProductSeeder::class,
-            BannersTableSeeder::class
+            BannersTableSeeder::class,
+            SettingSeeder::class,
         ]);
         User::truncate();
         User::create([

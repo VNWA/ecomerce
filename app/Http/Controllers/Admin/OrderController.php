@@ -16,10 +16,12 @@ use Validator;
 
 class OrderController extends Controller
 {
-    public function loadOrderLogs($code){
-        $order = Order::where('code',$code)->first();
+    public function loadOrderData($code)
+    {
+        $order = Order::where('code', $code)->first();
         return response()->json([
             'logs' => $order->logs,
+            'items' => $order->items,
         ], 200);
 
     }
@@ -243,14 +245,16 @@ class OrderController extends Controller
 
             // Lưu các mục trong đơn hàng
             foreach ($request->cartItems as $key => $item) {
-                if (Product::where('sku', $item['sku'])->exists()) {
+                $product = Product::where('sku', $item['sku'])->firstOrFail();
+                if ($product) {
                     OrderItem::create([
                         'order_id' => $order->id,
-                        'image' => $item['image'],
-                        'name' => $item['name'],
-                        'slug' => $item['slug'],
-                        'sku' => $item['sku'],
-                        'price' => $item['price_new'] ?? $item['price'],
+                        'product_id' => $product->id,
+                        'image' => $product->images[0],
+                        'name' => $product->name,
+                        'slug' => $product->slug,
+                        'sku' => $product->sku,
+                        'price' => $product->price_new,
                         'quantity' => $item['quantity'],
 
                     ]);
@@ -303,5 +307,36 @@ class OrderController extends Controller
         return Inertia::render('Admin/Ecommerce/Order/Edit', ['order' => $order]);
 
     }
+    public function update($id, $type)
+    {
+        try {
+            $order = Order::find($id);
+            switch ($type) {
+                case 'payment.completed':
+                    $order->payment_status = 'completed';
+                    $order->status = 'processing';
+                    $order->save();
+                    break;
+                case 'status.cancelled':
+                    $order->status = 'cancelled';
+                    $order->save();
+                    break;
+                case 'status.shipped':
+                    $order->status = 'shipped';
+                    $order->save();
+                    break;
+                case 'status.completed':
+                    $order->status = 'completed';
+                    $order->save();
+                    break;
 
+                default:
+                    break;
+            }
+            return response()->json(['message' => 'Success'], 200);
+
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 500);
+        }
+    }
 }

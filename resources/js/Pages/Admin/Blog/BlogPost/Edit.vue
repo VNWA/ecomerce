@@ -55,7 +55,7 @@
                                         </div>
                                         <Icon
                                             v-if="!isSlugLoading && form.slug.trim().length > 0 && errors.name.trim().length <= 0 && errors.slug.trim().length > 0"
-                                            class="text-red-500 font-bold text-lg" icon="fa6-solid:x" />
+                                            class="text-red-500 font-bold text-lg" icon="material-symbols:close-rounded"   />
                                         <Icon
                                             v-else-if="!isSlugLoading && form.slug.trim().length > 0 && errors.name.trim().length <= 0 && errors.slug.trim().length <= 0"
                                             class="text-green-500 font-bold text-lg" icon="fa6-solid:check" />
@@ -281,7 +281,7 @@ const submit = (isRollBack = true) => {
         toast.success(response.data.message);
         isPageLoading.value = false;
         if (!isRollBack) {
-            window.history.back();
+            window.close();
         }
     }).catch(error => {
         isPageLoading.value = false;

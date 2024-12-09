@@ -18,15 +18,15 @@ return new class extends Migration
             $table->json('images');
             $table->foreignId('brand_id')->nullable()->constrained('brands')->onDelete('set null');
             $table->foreignId('color_id')->nullable()->constrained('colors')->onDelete('set null');
-            $table->string('sku')->unique();
+            $table->text('sku')->unique();
             $table->string('size')->nullable();
             $table->string('included')->nullable();
             $table->integer('stock')->default(0);
             $table->tinyInteger('availability')->default(1);
             $table->string('origin');
             $table->string('ean')->nullable();
-            $table->string('name');
-            $table->string('slug')->unique();
+            $table->text('name');
+            $table->text('slug')->unique();
             $table->integer('price');
             $table->tinyInteger('is_discount')->default( 0);
             $table->enum('discount_type', ['percentage', 'amount'])->nullable(); // Sử dụng enum cho discount_type
@@ -37,6 +37,7 @@ return new class extends Migration
             $table->text('meta_image')->nullable();
             $table->text('meta_title')->nullable();
             $table->text('meta_desc')->nullable();
+            $table->fullText(['name', 'slug', 'sku']);
             $table->timestamps();
         });
     }

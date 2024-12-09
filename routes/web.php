@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductExcelController;
 use App\Http\Controllers\Admin\ProductImportController;
 use App\Http\Controllers\Admin\ProductOrderController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StaticPageController;
 use App\Http\Controllers\Admin\UrlController;
 use App\Http\Controllers\Admin\VinawebappController;
@@ -39,6 +40,8 @@ use App\Http\Controllers\Admin\MediaController;
 |
 */
 
+Route::post('/stripe-payment-status', [OrderController::class, 'stripeWebhook'])->name('Stripe.Webhook');
+Route::post('/paypal-payment-status', [OrderController::class, 'stripeWebhook'])->name('Paypal.Webhook');
 
 Route::get('/', function () {
     return Inertia::render('Admin/Welcome');
@@ -58,8 +61,40 @@ Route::get('/vnwa/login', function () {
 Route::prefix('vnwa')
     ->middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])
     ->group(function () {
-        Route::get('/backup', [VinawebappController::class, 'createBackup'])->name('VNWA.Backup');
 
+        Route::prefix('/configs')->group(function () {
+            Route::post('/change-database', [VinawebappController::class, 'changeDatabase'])->name('Config.ChangeDatabase');
+            Route::get('/', [VinawebappController::class, 'showConfig'])->name('Config.Show');
+            Route::post('/update', [VinawebappController::class, 'createBackup'])->name('Config.Update');
+        });
+        Route::prefix('/settings')->group(function () {
+            Route::get('/', [SettingController::class, 'showAll'])->name('Setting');
+            Route::prefix('/security')->group(function () {
+                Route::get('/frontend-urls', [SettingController::class, 'showFrontendUrls'])->name('Setting.Security.FrontendUrls');
+                Route::post('/frontend-urls', [SettingController::class, 'updateFrontendUrls'])->name('Setting.Security.FrontendUrls.Update');
+            });
+
+            Route::prefix('/configs')->group(function () {
+                Route::get('/stripe', [SettingController::class, 'showConfigStripe'])->name('Setting.Config.Stripe');
+                Route::post('/stripe', [SettingController::class, 'updateConfigStripe'])->name('Setting.Config.Stripe.Update');
+
+                Route::get('/paypal', [SettingController::class, 'showConfigPaypal'])->name('Setting.Config.Paypal');
+                Route::post('/paypal', [SettingController::class, 'updateConfigPaypal'])->name('Setting.Config.Paypal.Update');
+
+
+            });
+
+
+
+        });
+
+
+
+        Route::prefix('/vinawebapp-cms')->group(function () {
+            Route::get('/backup', [VinawebappController::class, 'createBackup'])->name('VNWA.Backup');
+            Route::get('/database-current-connect', [VinawebappController::class, 'createBackup'])->name('VNWA.DbInfo');
+
+        });
         Route::prefix('media')->group(function () {
             Route::get('/popup', function () {
                 return Inertia::render('Admin/MediaPopup');
@@ -89,20 +124,7 @@ Route::prefix('vnwa')
 
 
         });
-        Route::get('/view-mail-template', function () {
-            $appearanceProfile = Appearance::where('type', 'profile')->first();
-            $profile = $appearanceProfile ? $appearanceProfile->value : [];
 
-            $appearanceLogo = Appearance::where('type', 'logo')->first();
-            $logo = $appearanceLogo ? $appearanceLogo->value : [];
-
-            return view('mail.news_letter', [
-                'url' => env('FRONTEND_URL', 'https://vinawebapp.com'),
-                'logo' => $logo['logo_full'] ?? 'https://file.vinawebapp.com/uploads/images/Company/vnwaLogoFull.png',
-                'company_name' => env('APP_NAME', 'Vinawebapp.com'),
-                'profile' => $profile,
-            ]);
-        });
         Route::post('/change-status', [VinawebappController::class, 'changeStatus']);
         Route::post('/change-highlight', [VinawebappController::class, 'changeHighlight']);
         Route::post('/change-ord', [VinawebappController::class, 'changeORD']);
@@ -117,10 +139,12 @@ Route::prefix('vnwa')
 
         Route::get('/check-slug/{slug}/{model_type?}/{model_id?}', [UrlController::class, 'checkSlug']);
 
-        Route::get('/', function () {
+        Route::get('/dashboard', function () {
             return Inertia::render('Admin/Dashboard');
         })->name('dashboard');
-
+        Route::get('/', function () {
+            return Inertia::render('Admin/Dashboard');
+        });
 
         Route::prefix('blog')
             ->group(function () {
@@ -286,7 +310,7 @@ Route::prefix('vnwa')
                 Route::prefix('orders')->group(function () {
                     Route::get('/', [OrderController::class, 'index'])->name('Ecommerce.Order');
                     Route::get('/find-products/{s}', [OrderController::class, 'findProducts'])->name('Ecommerce.Order.FindProducts');
-                    Route::get('load-order-logs/{code}', [OrderController::class, 'loadOrderLogs'])->name('Ecommerce.Order.Logs');
+                    Route::get('load-order-data/{code}', [OrderController::class, 'loadOrderData'])->name('Ecommerce.Order.Data');
                     Route::get('load-data-table', [OrderController::class, 'loadDataTable'])->name('Ecommerce.Order.LoadData');
                     Route::get('load-orders-form-fileds', [OrderController::class, 'loadOrderFormFileds'])->name('Ecommerce.Order.loadOrderFormFileds');
 
@@ -298,7 +322,7 @@ Route::prefix('vnwa')
                     Route::post('/delete', [OrderController::class, 'delete'])->name('Ecommerce.Order.Delete');
 
                     Route::get('/edit/{id}', [OrderController::class, 'viewEdit'])->name('Ecommerce.Order.Edit');
-                    Route::post('/update/{id}', [OrderController::class, 'update'])->name('Ecommerce.Order.Update');
+                    Route::post('/update/{id}/{type}', [OrderController::class, 'update'])->name('Ecommerce.Order.Update');
                 });
 
             });
@@ -385,8 +409,8 @@ Route::prefix('vnwa')
                         return Inertia::render('Admin/Appearance/Home');
                     })->name('Appearance.Home');
 
-                    Route::get('/load-json-data', [AppearanceController::class, 'loadJsonDataHome']);
-                    Route::post('/update', [AppearanceController::class, 'updateHome']);
+                    Route::get('/load-json-data', [AppearanceController::class, 'loadJsonDataHome'])->name('Appearance.Home.LoadData');
+                    Route::post('/update', [AppearanceController::class, 'updateHome'])->name('Appearance.Home.Update');
                 });
 
                 Route::prefix('about')->group(function () {

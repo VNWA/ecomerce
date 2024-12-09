@@ -22,7 +22,7 @@
                                     class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-2 rounded mr-4 text-xs flex items-center justify-center gap-2"
                                     :class="{ 'bg-red-600/60 hover:bg-red-600/60': itemsSelected.length === 0 }"
                                     @click="showisModalDeleteMutipleItem">
-                                    <Icon icon="fa6-solid:x" class="mr-1" /> Clear data selection
+                                    <Icon icon="material-symbols:close-rounded"   class="mr-1" /> Clear data selection
                                 </button>
                             </div>
                             <div>
@@ -34,12 +34,12 @@
                                 <div class="flex items-center justify-end gap-4">
                                     <button @click="loadFromServer"
                                         class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-2 rounded ">
-                                                                                    <Icon   icon="fa6-solid:rotate-right"  />
- Load Data
+                                        <Icon icon="fa6-solid:rotate-right" />
+                                        Load Data
                                     </button>
-                                    <Link :href="route('Ecommerce.Product.Create')"
-                                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-2 rounded flex items-center justify-center gap-2 text-nowrap flex items-center justify-center gap-3 ">
-                                    <Icon icon="fa6-solid:plus"  /> Create
+                                    <Link :href="route('Ecommerce.Order.Create')"
+                                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-2 rounded text-nowrap flex items-center justify-center gap-3 ">
+                                    <Icon icon="fa6-solid:plus" /> Create
                                     </Link>
                                 </div>
                             </div>
@@ -83,7 +83,7 @@
                         </div>
                         <div class="my-2 ">
                             <DataTable :key="reRender" v-model:server-options="serverOptions" :headers="headers"
-                                :items="items" :server-items-length="serverItemsLength" :isTableLoading="isTableLoading"
+                                :items="items" :server-items-length="serverItemsLength" :loading="isTableLoading"
                                 buttons-pagination show-index v-model:items-selected="itemsSelected"
                                 @expand-row="loadIntroduction">
 
@@ -94,26 +94,99 @@
                                         </span>
                                     </div>
                                 </template>
+                                <template #item-status="{ status }">
+                                    <div>
+                                        <StatusBadges type="order" :value="status" />
+                                    </div>
+                                </template>
+                                <template #item-payment_status="{ payment_status }">
+                                    <div>
+                                        <StatusBadges type="payment" :value="payment_status" />
+                                    </div>
+                                </template>
+                                <template #item-updated_at="{ update_time }">
+                                    <div>
+                                        {{ update_time }}
+                                    </div>
+                                </template>
+
+
                                 <template #item-operation="{ id, code }">
                                     <div class="py-3 flex items-center justify-center">
                                         <Link :href="route('Ecommerce.Order.Copy', id)"
                                             class="bg-gray-600 text-white px-2 py-1 rounded-md mr-5">
-                                        <Icon  icon="fa6-solid:copy"   />
+                                        <Icon icon="fa6-solid:copy" />
                                         </Link>
-                                        <Link :href="route('Ecommerce.Order.Edit', id)"
+                                        <a target="_blank" :href="route('Ecommerce.Order.Edit', id)"
                                             class="bg-yellow-600 text-white px-2 py-1 rounded-md mr-5">
-                                        <Icon icon="fa6-solid:pen-to-square"  />
-                                        </Link>
+                                            <Icon icon="fa6-solid:pen-to-square" />
+                                        </a>
                                         <button class="bg-red-600 text-white px-2 py-1 rounded-md mr-5"
                                             @click="showModalDeleteItem(id, code)">
-                                            <Icon icon="fa6-solid:x" />
+                                            <Icon icon="material-symbols:close-rounded"   />
                                         </button>
 
                                     </div>
                                 </template>
                                 <template #expand="item">
-                                    <div v-if="item.logs" style="padding: 15px">
-                                        {{ item.logs }}
+                                    <div class="p-10 bg-black/50">
+                                        <div class=" bg-white border min-h-full">
+                                            <div class="mb-3 px-3 py-3" v-if="item.payment_status == 'pending'">
+                                                <a :href="$page.props.frontend_url + '/order/checkout/' + item.code"
+                                                    target="_blank" rel="noopener noreferrer">
+                                                    <button
+                                                        class="bg-blue-500 text-white px-3 py-2 flex items-center justify-center">
+                                                        Payment Link
+                                                        <Icon icon="material-symbols:add-link" class="text-xl" />
+                                                    </button>
+                                                </a>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div class="max-h-[500px] p-3 overflow-auto">
+                                                    <div class="p-3 border">
+                                                        <ol
+                                                            class="relative border-s border-gray-200 dark:border-gray-700">
+                                                            <li class="mb-10 ms-4" v-for="(item, index) in item.logs"
+                                                                :key="index">
+                                                                <div
+                                                                    class="absolute w-3 h-3 bg-gray-200 rounded-full mt-1.5 -start-1.5 border border-white dark:border-gray-900 dark:bg-gray-700">
+                                                                </div>
+                                                                <time
+                                                                    class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">{{
+                                                                        item.update_time }}
+                                                                </time>
+                                                                <p class="mb-4 text-base font-normal text-black/70 ">{{
+                                                                    item.message }}</p>
+                                                            </li>
+                                                        </ol>
+                                                    </div>
+
+                                                </div>
+                                                <div class="max-h-[500px] p-3 overflow-auto">
+                                                    <div class="p-3 border">
+                                                        <ul class="">
+                                                            <li class="mb-10 ms-4" v-for="(item, index) in item.items"
+                                                                :key="index">
+                                                                <div>
+                                                                    <ProductItem :product="item">
+                                                                        <div>
+                                                                            <span class="text-lg font-bold px-3">
+                                                                                {{ item.quantity }}
+                                                                            </span>
+                                                                        </div>
+                                                                    </ProductItem>
+                                                                </div>
+                                                            </li>
+
+                                                        </ul>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+
                                     </div>
                                 </template>
                             </DataTable>
@@ -138,6 +211,8 @@ import { formatCurrency } from '@/utils/helpers';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Select from '@/Components/Select.vue';
+import StatusBadges from '@/Components/StatusBadges.vue';
+import ProductItem from '@/Components/ProductItem.vue';
 const paymentMethods = [
     {
         name: 'Stripe',
@@ -197,6 +272,7 @@ const isFormFilter = ref(false);
 const items = ref([]);
 const headers = [
     { text: "Code", value: "code" },
+    { text: "Status", value: "status" },
     { text: "Email", value: "email" },
     { text: "Phone", value: "phone" },
     { text: "City", value: "city" },
@@ -219,7 +295,7 @@ const serverOptions = ref({
     city: '',
     payment_method: '',
     payment_status: '',
-    status: '',
+    status: 'new',
 });
 
 
@@ -227,8 +303,9 @@ const loadIntroduction = async (index) => {
     const expandedItem = items.value[index];
     if (!expandedItem.logs) {
         expandedItem.expandLoading = true;
-        const response = await axios.get(route('Ecommerce.Order.Logs', expandedItem.code));
+        const response = await axios.get(route('Ecommerce.Order.Data', expandedItem.code));
         expandedItem.logs = response.data.logs;
+        expandedItem.items = response.data.items;
         expandedItem.expandLoading = false;
     }
 };

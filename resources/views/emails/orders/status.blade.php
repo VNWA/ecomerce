@@ -1,5 +1,5 @@
 <x-mail::message>
-# Order Status Has Been Updated
+# {{ $message }}
 
 Dear {{ $order->first_name }} {{ $order->last_name }},
 

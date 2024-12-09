@@ -101,7 +101,10 @@ import { convertToSlug } from '@/utils/helpers';
 const url_web = new URL(window.location.href)
 const isSlugLoading = ref(false);
 const props =defineProps({
-    color:Object
+    color:{
+        type:Object,
+        default:{}
+    }
 })
 
 const isPageLoading = ref(false);
@@ -178,7 +181,7 @@ const submit = (isRollBack = true) => {
         toast.success(response.data.message);
         isPageLoading.value = false;
         if (!isRollBack) {
-            window.history.back();
+            window.close();
         }
     }).catch(error => {
         isPageLoading.value = false;

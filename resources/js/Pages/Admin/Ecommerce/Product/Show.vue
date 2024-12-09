@@ -10,7 +10,6 @@
                 </div>
             </div>
         </template>
-
         <div class="p-2">
             <div class="grid grid-cols-12 gap-4">
                 <div class="lg:col-span-12 col-span-12">
@@ -22,55 +21,67 @@
                                     class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-2 rounded mr-4 text-xs flex items-center justify-center gap-2"
                                     :class="{ 'bg-red-600/60 hover:bg-red-600/60': itemsSelected.length === 0 }"
                                     @click="showisModalDeleteMutipleItem">
-                                    <Icon icon="fa6-solid:x" class="mr-1" /> Clear data selection
+                                    <Icon icon="material-symbols:close-rounded" class="mr-1" /> Clear data selection
                                 </button>
                             </div>
                             <div class=" text-xs uppercase">
 
                                 <div class="flex items-center justify-end gap-4">
-                                    <button type="button" @click="isFormFilter = !isFormFilter"
-                                        :class="{ 'shadow-2xl shadow-purple-500 text-purple-500': serverOptions.name || serverOptions.categories && serverOptions.categories.length > 0 || serverOptions.brands && serverOptions.brands.length > 0 }"
-                                        class="bg-sky-500 uppercase border border-gray-300 font-bold text-center text-gray-100 text-sm rounded-lg block w-full py-2 px-3 flex items-center justify-center gap-2">
-                                        <Icon  icon="fa6-solid:magnifying-glass"   />
-                                        Filter
+                                    <button @click="loadFromServer"
+                                        class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-2 rounded ">
+                                        <Icon icon="fa6-solid:rotate-right" />
+                                        Load Data
                                     </button>
 
                                     <Link :href="route('Ecommerce.Product.Create')"
-                                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-2 rounded flex items-center justify-center gap-2 text-nowrap flex items-center justify-center gap-3 ">
-                                    <Icon icon="fa6-solid:plus"  /> Create
+                                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-2 rounded text-nowrap flex items-center justify-center gap-3 ">
+                                    <Icon icon="fa6-solid:plus" /> Create
                                     </Link>
                                 </div>
                             </div>
 
                         </div>
-                        <div :class="{ 'max-h-0': !isFormFilter, 'max-h-screen': isFormFilter }"
-                            class="overflow-hidden transition-max-height duration-500 ease-in-out">
-                            <div class="px-2 py-5 shadow-md border-2 border-black  bg-purple-500/20">
-                                <div class="flex items-center justify-between gap-4 mb-5">
-                                    <label for="name" class="text-lg font-bold w-24 text-black/80"> Name: </label>
-                                    <input type="text" v-model="serverOptions.name" id="name"
-                                        class="w-full rounded-md border border-gray-400/50">
+
+
+
+                        <div class="border px-3 py-3">
+                            <div class="flex items-center justify-center gap-4">
+                                <div class="">
+                                    <InputLabel for="name">Name </InputLabel>
+                                    <TextInput placeholder="Search Product Name" id="name" v-model="serverOptions.name"
+                                        type="text" class="mt-1 block w-full" />
                                 </div>
-                                <div class="flex items-center justify-between gap-4 mb-5" v-if="brandsData.length > 0">
+                                <div class="">
                                     <label for="brands" class="text-lg font-bold w-24 text-black/80"> Brands: </label>
                                     <MultiSelect id="brands" v-model="serverOptions.brands" display="chip"
                                         :options="brandsData" optionLabel="name" filter placeholder="Select brands"
                                         class="w-full py-1 px-3 overflow-hidden" />
+
                                 </div>
-                                <div class="flex items-center justify-between gap-4 mb-5"
-                                    v-if="categoriesData.length > 0">
+                                <div class="">
                                     <label for="categories" class="text-lg font-bold w-24 text-black/80"> Category:
                                     </label>
                                     <MultiSelect id="categories" v-model="serverOptions.categories" display="chip"
                                         :options="categoriesData" optionLabel="name" filter placeholder="Select brands"
                                         class="w-full py-1 px-3 overflow-hidden" />
                                 </div>
+
                             </div>
                         </div>
+
                         <div class="my-2 ">
                             <DataTable :key="reRender" v-model:server-options="serverOptions" :headers="headers"
-                                :items="items" :server-items-length="serverItemsLength" :isTableLoading="isTableLoading"
+                                :items="items" :server-items-length="serverItemsLength" :loading="isTableLoading"
                                 buttons-pagination show-index v-model:items-selected="itemsSelected">
+                                <template #header-nation="header">
+                                    <div>
+                                        <ul class="flex items-center justify-center gap-2">
+                                            <li v-for="(item, index) in $page.props.locales" :key="index">
+                                                <img :src="item.image" width="30" class="border" alt="vinawebapp.com">
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </template>
                                 <template #item-images="{ images }">
                                     <div class="py-2">
                                         <div v-if="images.length > 0">
@@ -105,7 +116,7 @@
                                 <template #item-name="{ name, slug }">
                                     <a :href="$page.props.frontend_url + '/p/' + slug" target="_blank"
                                         class="flex items-center justify-start gap-3 text-blue-500/80 hover:text-blue-500/60">
-                                        <Icon  icon="fa6-solid:arrow-up-right-from-square"   class="h-4" />
+                                        <Icon icon="fa6-solid:arrow-up-right-from-square" class="h-4" />
                                         <h5 class="text-md">{{ name }}</h5>
                                     </a>
                                 </template>
@@ -148,12 +159,14 @@
                                         </div>
                                     </div>
                                 </template>
+
+
                                 <template #item-operation="item">
                                     <div class="flex items-center  gap-5">
-                                        <Link :href="route('Ecommerce.Product.Edit', item.id)"
+                                        <a target="_blank" :href="route('Ecommerce.Product.Edit', item.id)"
                                             class=" text-xl text-yellow-600">
-                                        <Icon icon="fa6-solid:pen"  />
-                                        </Link>
+                                            <Icon icon="fa6-solid:pen" />
+                                        </a>
                                         <button class=" text-xl text-red-500"
                                             @click="showIsModalDeleteItem(item.id, item.name)">
                                             <Icon icon="fa6-solid:trash" />
@@ -174,7 +187,8 @@
                                     <div class="mt-4"></div>
                                     <div v-if="itemsDelete.length > 0">
                                         <div class="flex items-center" v-for="item in itemsDelete" :key="item.id">
-                                            <Icon icon="fa6-solid:x" /> class="text-red-600 mr-1" /> <span>{{ item.name
+                                            <Icon icon="material-symbols:close-rounded" /> class="text-red-600 mr-1" />
+                                            <span>{{ item.name
                                                 }}</span>
                                         </div>
                                     </div>
@@ -224,6 +238,8 @@ import DialogModal from '@/Components/DialogModal.vue';
 import { Link } from '@inertiajs/vue3';
 import MultiSelect from 'primevue/multiselect';
 import { formatCurrency } from '@/utils/helpers';
+import TextInput from '@/Components/TextInput.vue';
+import InputLabel from '@/Components/InputLabel.vue';
 
 const isFormFilter = ref(false);
 const items = ref([]);
@@ -233,9 +249,11 @@ const headers = [
     { text: "Categories", value: "categories" },
     { text: "Brand", value: "brand_id" },
     { text: "Price", value: "price", sortable: true },
+    { text: "Sell", value: "sell", sortable: true },
     { text: "Status", value: "is_show" },
     { text: "Best Seller", value: "is_seller" },
     { text: "Update At", value: "updated_at", sortable: true },
+
     { text: "Action", value: "operation" },
 ];
 

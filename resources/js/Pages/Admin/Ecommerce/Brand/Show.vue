@@ -13,7 +13,7 @@
                         <button :disabled="itemsSelected.length <= 0"
                             class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-2 rounded mr-4 text-xs flex items-center justify-center gap-2"
                             @click="showModalDeleteMutipleItem">
-                            <Icon icon="fa6-solid:x" class="mr-1" /> Xóa dữ liệu chọn
+                            <Icon icon="material-symbols:close-rounded"   class="mr-1" /> Xóa dữ liệu chọn
                         </button>
                     </div>
                     <div class="float-right text-xs uppercase">
@@ -44,7 +44,7 @@
                                             <button style="height: 30px; width: 30px;"
                                                 class="bg-black text-white hover:text-red-400"
                                                 @click="inputSearchName = false">
-                                                <Icon icon="fa6-solid:x" />
+                                                <Icon icon="material-symbols:close-rounded"   />
                                             </button>
                                         </div>
                                     </div>
@@ -64,7 +64,7 @@
                                 <div class="py-3 flex items-center justify-center">
                                     <button class="bg-red-600 text-white px-2 py-1 rounded-md mr-5"
                                         @click="showModalDeleteItem(id, name)">
-                                        <Icon icon="fa6-solid:x" />
+                                        <Icon icon="material-symbols:close-rounded"   />
                                     </button>
                                     <Link :href="route('Ecommerce.Brand.Edit', id)"
                                         class="bg-yellow-600 text-white px-2 py-1 rounded-md mr-5">
@@ -89,7 +89,7 @@
                 </div>
                 <div v-if="itemsDelete.length > 0">
                     <div class="flex items-center" v-for="item in itemsDelete">
-                        <Icon icon="fa6-solid:x" /> class="text-red-600 mr-1" /> <span>{{ item.name }}</span>
+                        <Icon icon="material-symbols:close-rounded"   /> class="text-red-600 mr-1" /> <span>{{ item.name }}</span>
                     </div>
                 </div>
 

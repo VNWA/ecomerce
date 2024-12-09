@@ -7,17 +7,122 @@ use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Services\Stripe;
+use App\Services\PayPal;
 use Carbon\Carbon;
+use Config;
 use DB;
-use Http;
 use Illuminate\Http\Request;
-use Stripe\Exception\SignatureVerificationException;
-use Stripe\StripeClient;
-use Stripe\Webhook;
 use Validator;
-use Srmklive\PayPal\Services\PayPal as PayPalClient;
 class OrderController extends Controller
 {
+    protected $stripe, $paypal;
+
+    public function __construct(Stripe $stripe, Paypal $paypal)
+    {
+        $this->stripe = $stripe;
+        $this->paypal = $paypal;
+    }
+    private function handleCheckoutSessionCompleted($event)
+    {
+        $session = $event->data->object;
+        $orderCode = $session->metadata->order_code ?? null;
+        $orderCode = trim($orderCode);
+        $db = $session->metadata->db ?? null;
+        if (!$orderCode || !$db) {
+            \Log::error($session->metadata);
+            \Log::error('Order code missing in checkout.session.completed event');
+            return;
+        } else {
+
+            Config::set('database.default', $db);
+
+            $order = Order::where('code', $orderCode)->first();
+            if (!$order) {
+                \Log::error('Order not found for code: ' . $orderCode);
+                return;
+            }
+
+            if ($session->payment_status == 'paid') {
+                $order->payment_status = 'completed';
+                $order->save();
+                \Log::info('Order ' . $orderCode . ' marked as completed.');
+            }
+
+        }
+    }
+
+    protected function handlePaymentIntentSucceeded($event)
+    {
+        $paymentIntent = $event->data->object;
+        $orderCode = $paymentIntent->metadata->order_code ?? null;
+
+        if (!$orderCode) {
+            \Log::error('---');
+            \Log::error($paymentIntent->metadata);
+            \Log::error('---');
+            \Log::error('Order code missing in payment_intent.succeeded event');
+            return;
+        } else {
+
+            $order = Order::where('code', trim($orderCode))->first();
+            if (!$order) {
+                \Log::error('Order not found for code: ' . $orderCode);
+                return;
+            }
+
+            $order->payment_status = 'completed';
+            $order->save();
+            \Log::info('Order ' . $orderCode . ' marked as completed.');
+        }
+
+
+    }
+    public function stripeWebhook(Request $request)
+    {
+        $payload = $request->getContent();
+        $sig_header = $request->header('Stripe-Signature');
+
+        try {
+            $event = $this->stripe->webhookEvent($payload, $sig_header);
+        } catch (\Throwable $th) {
+            \Log::error('Stripe Webhook Error', ['message' => $th->getMessage()]);
+            return response()->json(['error' => 'Invalid signature'], 400);
+        }
+
+        try {
+            switch ($event->type) {
+                case 'checkout.session.completed':
+                    $this->handleCheckoutSessionCompleted($event);
+                    break;
+
+                // case 'payment_intent.succeeded':
+                //     $this->handlePaymentIntentSucceeded($event);
+                //     break;
+                default:
+                    // \Log::info('Unhandled event type: ' . $event->type);
+                    break;
+            }
+        } catch (\Throwable $th) {
+            \Log::error('Stripe Webhook Processing Error', ['message' => $th->getMessage()]);
+            return response()->json(['error' => 'Webhook processing failed'], 500);
+        }
+
+        return response()->json(['status' => 'success']);
+    }
+
+
+
+    private function stripeCreatePaymentLink($origin, $orderCode, $orderPrice)
+    {
+        if (empty($origin) || empty($orderCode) || empty($orderPrice)) {
+            throw new \InvalidArgumentException('Missing required parameters.');
+        }
+
+        return $this->stripe->paymentLink($orderPrice * 100, $orderCode, $origin, 'usd');
+    }
+
+
     public function orderItems($code)
     {
         try {
@@ -110,25 +215,19 @@ class OrderController extends Controller
 
             // Lưu các mục trong đơn hàng
             foreach ($request->cartItems as $key => $item) {
-                $product = $item['product'];
-                if (Product::where('sku', $key)->exists()) {
-                    OrderItem::create([
-                        'order_id' => $order->id,
-                        'image' => $product['image'],
-                        'name' => $product['name'],
-                        'slug' => $product['slug'],
-                        'sku' => $product['sku'],
-                        'price' => $product['price_new'],
-                        'quantity' => $item['qnt'],
+                $product = Product::where('sku', $key)->firstOrFail();
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'image' => $product->images[0],
+                    'name' => $product->name,
+                    'slug' => $product->slug,
+                    'sku' => $product->sku,
+                    'price' => $product->price_new,
+                    'quantity' => $item['qnt'],
 
-                    ]);
+                ]);
 
-                } else {
-                    DB::rollBack();
-                    return response()->json([
-                        'message' => $product['name'] . ' not found.',
-                    ], 500);
-                }
             }
 
             // Commit transaction
@@ -148,100 +247,13 @@ class OrderController extends Controller
             ], 500);
         }
     }
-    public function stripeWebhook(Request $request)
-    {
-        // Lấy mã bí mật của webhook từ Stripe Dashboard
-        $endpoint_secret = env('STRIPE_WEBHOOK_KEY');
 
-        // Lấy raw body của webhook request
-        $payload = $request->getContent();
-
-        // Lấy chữ ký của Stripe để kiểm tra tính hợp lệ của webhook
-        $sig_header = $request->header('Stripe-Signature');
-
-        try {
-            // Xác minh chữ ký của Stripe
-            $event = Webhook::constructEvent($payload, $sig_header, $endpoint_secret);
-        } catch (SignatureVerificationException $e) {
-            // Nếu chữ ký không hợp lệ, trả về lỗi 400
-            return response()->json(['error' => 'Invalid signature'], 400);
-        }
-
-        // Kiểm tra sự kiện và xử lý theo yêu cầu
-        switch ($event->type) {
-            case 'checkout.session.completed':
-                $session = $event->data->object; // Thông tin về session
-                $orderCode = $session->metadata->order_code; // Mã đơn hàng
-
-                // Kiểm tra trạng thái thanh toán
-                if ($session->payment_status == 'paid') {
-                    // Cập nhật trạng thái đơn hàng trong cơ sở dữ liệu là "đã thanh toán"
-                    $order = Order::where('code', $orderCode)->first();
-                    if ($order) {
-                        $order->payment_status = 'completed'; // Cập nhật trạng thái thanh toán
-                        $order->save(); // Lưu và kích hoạt sự kiện
-                    }
-                }
-                break;
-
-            case 'payment_intent.succeeded':
-                $paymentIntent = $event->data->object;
-                $orderCode = $paymentIntent->metadata->order_code;
-                $order = Order::where('code', $orderCode)->first();
-                if ($order) {
-                    $order->payment_status = 'completed'; // Cập nhật trạng thái thanh toán
-                    $order->save(); // Lưu và kích hoạt sự kiện
-                }
-                break;
-
-            default:
-                // Các sự kiện khác mà bạn không quan tâm
-                break;
-        }
-
-        // Trả về HTTP 200 để Stripe biết rằng webhook đã được nhận và xử lý thành công
-        return response()->json(['status' => 'success']);
-    }
-
-    private function stripeCreatePaymentLink($orderCode, $orderPrice)
-    {
-        // Khởi tạo StripeClient
-        $stripe = new StripeClient(env('STRIPE_SECRET_KEY'));
-
-        // Tạo một Price mới (nếu chưa có trước đó)
-        $price = $stripe->prices->create([
-            'unit_amount' => $orderPrice * 100, // Stripe yêu cầu giá trị tính bằng cent
-            'currency' => 'usd',
-            'product_data' => [
-                'name' => $orderCode, // Đặt tên sản phẩm là mã đơn hàng
-            ],
-        ]);
-
-        // Tạo Payment Link
-        $paymentLink = $stripe->paymentLinks->create([
-            'line_items' => [
-                [
-                    'price' => $price->id, // Sử dụng Price ID được tạo ở trên
-                    'quantity' => 1,
-                ],
-            ],
-            'metadata' => [
-                'order_code' => $orderCode, // Có thể thêm metadata để theo dõi thông tin đơn hàng
-            ],
-            'after_completion' => [
-                'type' => 'redirect',
-                'redirect' => ['url' => env('FRONTEND_URL', 'https://vinawebapp.com')],
-            ],
-        ]);
-
-        return $paymentLink->url;
-    }
 
     public function test($orderID = null)
     {
-        return $this->stripeCreatePaymentLink('Jsonaaa', 100);
+
     }
-    public function detail($code)
+    public function detail(Request $request, $code)
     {
         if ($code) {
             // Lấy dữ liệu với model Eloquent
@@ -263,7 +275,9 @@ class OrderController extends Controller
                 });
                 $paymentUrl = '';
                 if ($order->payment_method == 'stripe') {
-                    $paymentUrl = $this->stripeCreatePaymentLink($order->code, $order->total);
+                    $origin = $request->headers->get('Origin');
+                    $origin = $origin . '/order/checkout?code=' . $order->code;
+                    $paymentUrl = $this->stripeCreatePaymentLink($origin, $order->code, $order->total);
                 }
                 return response()->json([
                     'message' => 'Load Data Success',
@@ -277,51 +291,34 @@ class OrderController extends Controller
             return response()->json(['message' => 'Data Not Found'], 404);
         }
     }
-    public function paymenRedirect($status, $orderCode)
-    {
-        try {
-            if ($status == 'success') {
+    // public function paymenRedirect($status, $orderCode)
+    // {
+    //     try {
+    //         if ($status == 'success') {
 
-                $order = Order::where('code', $orderCode)->where('payment_status', 'pending')->first();
-                if ($order) {
-                    $order->payment_status = 'completed';
-                    $order->save();
-                    return redirect(env('FRONTEND_URL', 'https://vinawebapp.com') . '/order/success');
-                }
+    //             $order = Order::where('code', $orderCode)->where('payment_status', 'pending')->first();
+    //             if ($order) {
+    //                 $order->payment_status = 'completed';
+    //                 $order->save();
+    //                 return redirect(env('FRONTEND_URL', 'https://vinawebapp.com') . '/order/success');
+    //             }
 
-            }
-            return redirect(env('FRONTEND_URL', 'https://vinawebapp.com') . '/order/cancel');
-        } catch (\Throwable $th) {
-            return redirect(env('FRONTEND_URL', 'https://vinawebapp.com') . '/order/cancel');
+    //         }
+    //         return redirect(env('FRONTEND_URL', 'https://vinawebapp.com') . '/order/cancel');
+    //     } catch (\Throwable $th) {
+    //         return redirect(env('FRONTEND_URL', 'https://vinawebapp.com') . '/order/cancel');
 
-        }
+    //     }
 
-    }
+    // }
 
 
-    private function paypalVerifyPayment($orderID)
-    {
-        $provider = new PayPalClient;
-
-        $provider->setApiCredentials(config('paypal'));
-        $provider->getAccessToken();
-
-        // Capture Payment with paymentId and payerId
-        $response = $provider->showOrderDetails($orderID);
-
-        // Kiểm tra trạng thái trả về
-        return $response;
-        if (empty($response['error'])) {
-            if ($response['status'] == 'COMPLETED') {
-                return true;
-            }
-        }
-        return false;
-    }
 
 
     public function payment(Request $request, $code)
     {
+
+
         if ($code) {
             // Kiểm tra dữ liệu có trong yêu cầu
             if ($request->orderID && $request->payerID && $request->paymentID) {
@@ -332,7 +329,7 @@ class OrderController extends Controller
                     $paymentId = $request->paymentID; // Lưu ý tham số là paymentID
                     $payerId = $request->payerID; // Lưu ý tham số là payerID
                     $amount = $order->total;
-                    if ($this->paypalVerifyPayment($orderID)) {
+                    if ($this->paypal->verifyPayment($code)) {
                         $order->payment_status = 'completed';
                         $order->save();
                         return response()->json(['message' => 'Payment completed successfully'], 200);

@@ -350,7 +350,11 @@ class ProductController extends Controller
 
             return response()->json(['message' => $th->getMessage()], 500);
         }
+
     }
+
+
+
     function delete(Request $request)
     {
 

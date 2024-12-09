@@ -31,8 +31,9 @@ class NewsletterController extends Controller
             // Nếu chưa có, lưu email vào bảng customer_emails
             CustomerEmail::create(['email' => $request->email]);
         }
-        // Gửi email newsletter
-        Mail::to($request->email)->queue(new NewsLetterMail());
+        $origin = $request->headers->get('Origin');
+
+        Mail::to($request->email)->queue(new NewsLetterMail($origin));
 
         return response()->json(['message' => 'Thank you for subscribing!']);
     }

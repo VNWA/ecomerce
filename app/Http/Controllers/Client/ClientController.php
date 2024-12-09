@@ -11,6 +11,7 @@ use App\Models\ProductCategory;
 use App\Models\ProductCategoryAssignment;
 use App\Models\StaticPage;
 use App\Models\Coupon;
+use Cache;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
@@ -21,10 +22,79 @@ class ClientController extends Controller
 {
     protected $metaSEO;
 
-    public function __construct()
+    public function __construct(MetaSEO $metaSEO)
     {
-        $this->metaSEO = new MetaSEO();
+        $this->metaSEO = $metaSEO;
     }
+    public function loadDataLayout()
+    {
+        $logo = Appearance::where('type', 'logo')->first();
+        $footer = Appearance::where('type', 'footer')->first();
+        $topNav = Appearance::where('type', 'top_nav')->first();
+        $profile = Appearance::where('type', 'profile')->first();
+        $product_categories = ProductCategory::where('is_show', 1)->where('is_header', 1)
+            ->orderBy('ord')
+            ->get(['id', 'parent_id', 'is_header', 'slug', 'is_header_sub_colors', 'header_bg', 'image', 'name', 'ord'])
+            ->map(function ($category) {
+                // Đệ quy lấy danh mục con
+                $category->children = $this->getChilProductdCategories($category->id);
+                return $category;
+            });
+        $colors = Color::get(['name', 'image', 'slug']);
+        $staticPage = [];
+
+        $staticPage['main'] = StaticPage::where('is_show', 1)->where('is_header', 1)->first(['name', 'slug']);
+        if ($staticPage['main']) {
+            $staticPage['menu'] = StaticPage::where('is_show', 1)->whereNot('is_header', 1)->get(['name', 'slug']);
+        }
+
+        return response()->json([
+            'logo' => $logo ? $logo->value : [],
+            'footer' => $footer ? $footer->value : [],
+            'topNav' => $topNav ? $topNav->value : [],
+            'profile' => $profile ? $profile->value : [],
+            'product_categories' => $product_categories,
+            'colors' => $colors,
+            'staticPage' => $staticPage,
+        ], 200);
+    }
+    public function loadDataHomePage()
+    {
+        $profile = Appearance::where('type', 'profile')->first();
+
+        $banners = Banner::where('is_show', 1)
+            ->orderBy('ord', 'asc')
+            ->get(['name', 'link', 'image', 'image_mobile']);
+
+        // Kiểm tra và gán image_mobile nếu rỗng
+        $banners = $banners->map(function ($banner) {
+            if (empty($banner->image_mobile)) {
+                $banner->image_mobile = $banner->image;
+            }
+            return $banner;
+        });
+        $highlightCategories = ProductCategory::where('is_show', 1)->where('is_highlight', 1)
+            ->orderBy('ord', 'asc')
+            ->get(['name', 'slug', 'image']);
+
+        $homeSections = Appearance::where('type', 'homeSections')->first();
+        $sellerProducts = Product::where('is_show', 1)->where('is_seller', 1)->get(['name', 'images', 'slug', 'price']);
+        foreach ($sellerProducts as $value) {
+            $images = $value->images;
+            $value->image = $images[0];
+        }
+
+        return response()->json([
+            'banners' => $banners,
+            'highlightCategories' => $highlightCategories,
+            'homeSections' => $homeSections->value,
+            'sellerProducts' => $sellerProducts,
+            'profile' => $profile->value,
+
+        ], 200);
+    }
+
+
     public function findCoupon($code)
     {
         try {
@@ -252,6 +322,7 @@ class ClientController extends Controller
 
     public function loadDataDetailProduct($slug)
     {
+
         $product = Product::where('slug', $slug)
             ->with('categories:name,slug')
             ->with('brand:id,name,slug')
@@ -261,7 +332,13 @@ class ClientController extends Controller
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-        return response()->json($product, 200);
+        $meta = $this->metaSEO->setContext([
+            'title' => $product->name,
+            'meta_title' => $product->meta_title ?? $product->name,
+            'meta_desc' => $product->meta_desc,
+            'meta_image' => $product->meta_image,
+        ])->getMeta();
+        return response()->json(['message' => 'success', 'product' => $product, 'seo' => $meta], 200);
 
     }
     public function checkProductSku($sku)
@@ -288,73 +365,6 @@ class ClientController extends Controller
         return $children;
     }
 
-    public function loadDataLayout()
-    {
-        $logo = Appearance::where('type', 'logo')->first();
-        $footer = Appearance::where('type', 'footer')->first();
-        $topNav = Appearance::where('type', 'top_nav')->first();
-        $profile = Appearance::where('type', 'profile')->first();
-        $product_categories = ProductCategory::where('is_show', 1)->where('is_header', 1)
-            ->orderBy('ord')
-            ->get(['id', 'parent_id', 'is_header', 'slug', 'is_header_sub_colors', 'header_bg', 'image', 'name', 'ord'])
-            ->map(function ($category) {
-                // Đệ quy lấy danh mục con
-                $category->children = $this->getChilProductdCategories($category->id);
-                return $category;
-            });
-        $colors = Color::get(['name', 'image', 'slug']);
-        $staticPage = [];
-
-        $staticPage['main'] = StaticPage::where('is_show', 1)->where('is_header', 1)->first(['name', 'slug']);
-        if ($staticPage['main']) {
-            $staticPage['menu'] = StaticPage::where('is_show', 1)->whereNot('is_header', 1)->get(['name', 'slug']);
-        }
-
-        return response()->json([
-            'logo' => $logo ? $logo->value : [],
-            'footer' => $footer ? $footer->value : [],
-            'topNav' => $topNav ? $topNav->value : [],
-            'profile' => $profile ? $profile->value : [],
-            'product_categories' => $product_categories,
-            'colors' => $colors,
-            'staticPage' => $staticPage,
-        ], 200);
-    }
-    public function loadDataHomePage()
-    {
-        $profile = Appearance::where('type', 'profile')->first();
-
-        $banners = Banner::where('is_show', 1)
-            ->orderBy('ord', 'asc')
-            ->get(['name', 'link', 'image', 'image_mobile']);
-
-        // Kiểm tra và gán image_mobile nếu rỗng
-        $banners = $banners->map(function ($banner) {
-            if (empty($banner->image_mobile)) {
-                $banner->image_mobile = $banner->image;
-            }
-            return $banner;
-        });
-        $highlightCategories = ProductCategory::where('is_show', 1)->where('is_highlight', 1)
-            ->orderBy('ord', 'asc')
-            ->get(['name', 'slug', 'image']);
-
-        $homeSections = Appearance::where('type', 'homeSections')->first();
-        $sellerProducts = Product::where('is_show', 1)->where('is_seller', 1)->get(['name', 'images', 'slug', 'price']);
-        foreach ($sellerProducts as $value) {
-            $images = $value->images;
-            $value->image = $images[0];
-        }
-
-        return response()->json([
-            'banners' => $banners,
-            'highlightCategories' => $highlightCategories,
-            'homeSections' => $homeSections->value,
-            'sellerProducts' => $sellerProducts,
-            'profile' => $profile->value,
-
-        ], 200);
-    }
     public function loadDataDeliveryCountries()
     {
         $deliveryCountries = DeliveryCountry::with(['deliveryPrices.delivery'])->get();
@@ -381,8 +391,14 @@ class ClientController extends Controller
         try {
             $staticPage = StaticPage::where('is_show', 1)->where('slug', $slug)->first();
             if ($staticPage) {
+                $meta = $this->metaSEO->setContext([
+                    'title' => $staticPage->name,
+                    'meta_title' => $staticPage->meta_title ?? $staticPage->name,
+                    'meta_desc' => $staticPage->meta_desc,
+                    'meta_image' => $staticPage->meta_image,
+                ])->getMeta();
 
-                return response()->json(['message' => 'Success', 'data' => $staticPage], 200);
+                return response()->json(['message' => 'Success', 'data' => $staticPage, 'seo' => $meta], 200);
             } else {
 
                 return response()->json(['message' => 'Data Not Found'], 404);
@@ -391,5 +407,24 @@ class ClientController extends Controller
             return response()->json(['message' => $th->getMessage()], 500);
 
         }
+    }
+    public function loadSearchProducts($query)
+    {
+        // Xử lý trường hợp rỗng
+        if (empty(trim($query))) {
+            return response()->json(['products' => []], 200);
+        }
+
+        // Lấy dữ liệu từ cache nếu có, nếu không thực hiện truy vấn
+        $products = Cache::remember("search:products:{$query}", 3600, function () use ($query) {
+            return Product::where('name', 'LIKE', "%{$query}%")
+                ->orWhere('slug', 'LIKE', "%{$query}%")
+                ->orWhere('sku', 'LIKE', "%{$query}%")
+                ->where('is_show', 1)
+                ->take(20) // Lấy tối đa 20 sản phẩm
+                ->get(['name', 'slug', 'price', 'images']);
+        });
+
+        return response()->json(['products' => $products], 200);
     }
 }

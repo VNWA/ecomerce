@@ -78,19 +78,19 @@ class Order extends Model
                 $message = '';
                 switch ($order->payment_status) {
                     case 'pending':
-                        $message = 'Đơn hàng ' . $order->code . ' chờ thanh toán';
+                        $message = 'Order ' . $order->code . ' is pending payment.';
                         break;
                     case 'completed':
-                        $message = 'Đơn hàng ' . $order->code . ' thanh toán thành công';
+                        $message = 'Order ' . $order->code . ' has been successfully paid.';
                         break;
                     case 'cancelled':
-                        $message = 'Đơn hàng ' . $order->code . ' thanh toán thất bại';
+                        $message = 'Order ' . $order->code . ' payment was cancelled.';
                         break;
                     case 'failed':
-                        $message = 'Đơn hàng ' . $order->code . ' thanh toán thất bại';
+                        $message = 'Order ' . $order->code . ' payment failed.';
                         break;
                     default:
-                        $message = 'Đơn hàng ' . $order->code . ' đã được cập nhật trạng thái thanh toán';
+                        $message = 'Order ' . $order->code . ' payment status has been updated.';
                 }
 
                 // Log thông tin thay đổi trạng thái thanh toán
@@ -109,22 +109,22 @@ class Order extends Model
                 $message = '';
                 switch ($order->status) {
                     case 'processing':
-                        $message = 'Đơn hàng ' . $order->code . ' đang được chuẩn bị';
+                        $message = 'Order ' . $order->code . ' is being processed.';
                         break;
                     case 'shipped':
-                        $message = 'Đơn hàng ' . $order->code . ' đang giao hàng';
+                        $message = 'Order ' . $order->code . ' is being shipped.';
                         break;
                     case 'completed':
-                        $message = 'Đơn hàng ' . $order->code . ' đã giao hàng thành công';
+                        $message = 'Order ' . $order->code . ' has been successfully delivered.';
                         break;
                     case 'cancelled':
-                        $message = 'Đơn hàng ' . $order->code . ' đã hủy';
+                        $message = 'Order ' . $order->code . ' has been cancelled.';
                         break;
                     case 'returned':
-                        $message = 'Đơn hàng ' . $order->code . ' đã chuyển sang trạng thái hoàn trả';
+                        $message = 'Order ' . $order->code . ' has been marked as returned.';
                         break;
                     default:
-                        $message = 'Đơn hàng ' . $order->code . ' đã được cập nhật trạng thái';
+                        $message = 'Order ' . $order->code . ' status has been updated.';
                 }
 
                 // Log thông tin thay đổi trạng thái đơn hàng

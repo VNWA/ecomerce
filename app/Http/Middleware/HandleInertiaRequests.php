@@ -2,6 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Locale;
+use App\Models\Setting;
+use Config;
+use DB;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -33,10 +37,23 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
+
+
     public function share(Request $request): array
     {
+
+        $defaultConnection = 'es_db';
+        $connection = session('db_connection', $defaultConnection);
+        Config::set('database.default', $connection);
+        $setting = Setting::where('type', 'frontend_urls')->first();
+        $frontend_url = '';
+        if ($setting) {
+            $urls = $setting->json_value;
+            $frontend_url = $urls[0] ?? '';
+        }
         return array_merge(parent::share($request), [
-            'frontend_url' => config('app.frontend_url'),
+            'frontend_url' => $frontend_url,
+            'current_db' => $connection,
         ]);
     }
 }

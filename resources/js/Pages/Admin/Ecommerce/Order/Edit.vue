@@ -168,12 +168,19 @@
 
                 <div class="lg:col-span-3 col-span-12 ">
                     <div class="min-h-screen h-full  relative bg-red-50">
+
                         <div class="sticky z-10 top-0 left-0 bg-white shadow rounded-sm mb-3 p-2"
                             v-if="carts.length > 0 && paymentMethod && Object.keys(deliveryPrice).length">
                             <div class="py-2 border-b border-black/10 mb-5 text-black">
                                 <h2 class="text-lg font-bold">Publish</h2>
                             </div>
-                            <div class="border p-3 mb-5 bg-slate-50">
+                            <div class="border p-3 mb-5 bg-slate-50 ">
+                                <div class="mb-4 flex items-center justify-center" v-if="order.status != 'completed'">
+                                    <button @click="updateOrder('status.cancel')"
+                                        class="border px-3 py-2 text-center text-lg bg-red-400 text-black/50 hover:bg-red-500 hover:text-white rounded-md font-bold">
+                                        Confirm cancelled
+                                    </button>
+                                </div>
                                 <div class="flex items-center justify-between gap-4 px-3 mb-3">
                                     <h5 class="text-black/70 text-lg">
                                         Cart Total
@@ -213,20 +220,49 @@
                                 </div>
 
                             </div>
-                            <div>
-                                <form @submit.prevent="handleSubmit">
-                                    <div class="p-3">
-
-                                    </div>
-
-                                    <!-- <div class="flex items-center justify-end gap-4">
-                                        <button type="submit"
-                                            class="flex items-center justify-center bg-purple-500 hover:bg-purple-500/80 rounded-md px-5 py-2 min-w-24 text-white text-lg font-bold">
-                                            <Icon icon="fa6-solid:floppy-disk"  /> Save
-                                        </button>
-                                    </div> -->
-                                </form>
+                            <div class="my-3">
+                                <ul>
+                                    <li class="flex items-center justify-start gap-4 text-black mb-3">
+                                        Order Status:
+                                        <StatusBadges type="order" :value="order.status" />
+                                    </li>
+                                    <li class="flex items-center justify-start gap-4 text-black mb-3">
+                                        Payment Status:
+                                        <StatusBadges type="payment" :value="order.payment_status" />
+                                    </li>
+                                </ul>
                             </div>
+                            <div class="py-3 mb-10 flex items-center justify-center"
+                                v-if="!isPageLoading && order.status != 'completed'">
+                                <!-- Kiểm tra nếu đơn hàng đang ở trạng thái "new" và thanh toán đang "pending" -->
+                                <div v-if="order.payment_status == 'pending' && order.status == 'new'">
+                                    <button @click="updateOrder('payment.completed')"
+                                        class="border px-3 py-2 text-center text-lg bg-green-500  text-white rounded-md font-bold">
+                                        <Icon icon="hugeicons:payment-success-02"
+                                            class="text-white font-bold text-xl" /> Confirm
+                                        Payment
+
+                                    </button>
+                                </div>
+
+                                <div v-if="order.status == 'processing'">
+                                    <button @click="updateOrder('status.shipped')"
+                                        class="border px-3 py-2 text-center text-lg bg-orange-500 text-white rounded-md font-bold">
+                                        <Icon icon="iconamoon:delivery-fill" class="text-white font-bold text-xl" />
+                                        Confirm Shipment
+                                    </button>
+                                </div>
+
+                                <div v-if="order.status == 'shipped'">
+                                    <button @click="updateOrder('status.completed')"
+                                        class="border px-3 py-2 text-center text-lg bg-blue-500 text-white rounded-md font-bold">
+                                        <Icon icon="hugeicons:safe-delivery-01" class="text-white font-bold text-xl" />
+                                        Confirm Delivery
+                                    </button>
+                                </div>
+                            </div>
+
+
 
                         </div>
                     </div>
@@ -253,6 +289,7 @@ import Dropdown from '@/Components/Input/Dropdown.vue';
 import ProductItem from '@/Components/ProductItem.vue';
 import { debounce } from 'lodash';
 import Select from '@/Components/Select.vue';
+import StatusBadges from '@/Components/StatusBadges.vue';
 const props = defineProps({
     order: {
         type: Object,
@@ -344,16 +381,6 @@ onMounted(() => {
 
     loadDataFileds();
 })
-const searchProducts = debounce(async (event) => {
-    const query = event.target.value;
-    if (query.trim() === '') return; // Nếu không có gì để tìm kiếm, tránh gọi API
-    try {
-        const response = await axios.get(route('Ecommerce.Order.FindProducts', query));
-        products.value = response.data.products;
-    } catch (error) {
-        console.log(error);
-    }
-}, 500);
 
 const updateTotal = () => {
     let orderSubtotal = cartTotal.value;
@@ -406,107 +433,33 @@ watch(deliveryPrice, (newValue) => {
 });
 
 
+const updateOrder = (type) => {
+    isPageLoading.value = true;
 
-const addToCart = (item, quantity = 1) => {
-    const cartItem = {
-        image: item.image,
-        name: item.name,
-        slug: item.slug,
-        sku: item.sku,
-        price: item.price,
-        price_new: item.price_new,
-        quantity: quantity,
+    const confirmationMessages = {
+        'payment.completed': 'Confirm this order has been paid and move to preparation status.',
+        'status.cancelled': 'Confirm this order has been cancelled.',
+        'status.shipped': 'Confirm this order is in transit.',
+        'status.completed': 'Confirm this order has been completed.',
     };
 
-    // Kiểm tra xem sản phẩm đã tồn tại trong giỏ hàng chưa
-    const existingItemIndex = carts.value.findIndex(cart => cart.sku === cartItem.sku);
-
-    if (existingItemIndex !== -1) {
-        // Nếu đã tồn tại, tăng số lượng
-        carts.value[existingItemIndex].quantity += quantity;
+    if (confirmationMessages[type] && confirm(confirmationMessages[type])) {
+        updateOrderAction(type);
     } else {
-        // Nếu chưa tồn tại, thêm sản phẩm vào giỏ hàng
-        carts.value.push(cartItem);
-    }
-};
-const incrementQuantity = (sku) => {
-    const existingItemIndex = carts.value.findIndex(cart => cart.sku === sku);
-
-    if (existingItemIndex !== -1) {
-        // Nếu đã tồn tại, tăng số lượng
-        carts.value[existingItemIndex].quantity += 1;
+        isPageLoading.value = false;
     }
 }
-const decrementQuantity = (sku) => {
-    const existingItemIndex = carts.value.findIndex(cart => cart.sku === sku);
 
-    if (existingItemIndex !== -1) {
-        // Nếu đã tồn tại, tăng số lượng
-        if (carts.value[existingItemIndex].quantity > 1) {
-            carts.value[existingItemIndex].quantity -= 1;
-
-        }
-    }
-}
-const removeFromCart = (sku) => {
-    const existingItemIndex = carts.value.findIndex(cart => cart.sku === sku);
-
-    if (existingItemIndex !== -1) {
-        // Xóa phần tử bằng splice
-        carts.value.splice(existingItemIndex, 1);
-    }
-};
-
-
-
-const clearError = () => {
-    for (const key in errors) {
-        if (errors.hasOwnProperty(key)) {
-            errors[key] = '';
-        }
-    }
-};
-
-
-
-const handleSubmit = () => {
-    clearError();
+const updateOrderAction = (type) => {
     isPageLoading.value = true;
-    axios.post(route('Ecommerce.Order.Store'), {
-        first_name: formProfile.first_name,
-        last_name: formProfile.last_name,
-        email: formProfile.email,
-        phone: formProfile.phone,
-        post_code: formProfile.post_code,
-        city: formProfile.city,
-        address: formProfile.address,
-        address_number: formProfile.address_number,
-        note: formProfile.note,
-        paymentMethod: paymentMethod.value,
-        delivery: deliveryPrice.value,
-        coupon: coupon.value,
-        cartItems: carts.value,
-        total: orderTotal.value,
-    }).then(res => {
-        toast.success(res.data.message);
-
-    }).catch(error => {
-        if (error.response.data.errors) {
-            const errorKeys = Object.keys(error.response.data.errors);
-            errorKeys.forEach(key => {
-                if (key in errors) {
-                    errors[key] = error.response.data.errors[key][0];
-                }
-            });
-            toast.error(error.message);
-
-        }
+    axios.post(route('Ecommerce.Order.Update', [props.order.id, type])).then(res => {
+        location.reload();
+    }).catch(e => {
+        console.error(e);
     }).finally(() => {
         isPageLoading.value = false;
     });
-};
-
-
+}
 
 
 </script>

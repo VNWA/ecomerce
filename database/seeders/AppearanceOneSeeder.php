@@ -18,11 +18,12 @@ class AppearanceOneSeeder extends Seeder
         Appearance::create([
             'type' => 'logo',
             'value' => [
-                'logo_full' => 'https://file.vinawebapp.com/uploads/images/Company/vnwaLogoFull.png',
-                'logo_icon' => 'https://file.vinawebapp.com/uploads/images/Company/vnwaLogoIcon.png',
-                'favicon' => 'https://file.vinawebapp.com/uploads/images/Company/vnwaLogoIcon.png'
+                'logo_full' => url('/images/vnwaLogoFull.png'),
+                'logo_icon' => url('/images/vnwaLogoIcon.png'),
+                'favicon' => url('/images/vnwaLogoIcon.png'),
             ],
         ]);
+
         Appearance::create([
             'type' => 'top_nav',
             'value' => [
@@ -111,19 +112,19 @@ class AppearanceOneSeeder extends Seeder
             'type' => 'profile',
             'value' => [
                 'contact' => [
-                   'facebook'=> '/',
-                   'instagram'=> '/',
-                   'youtube'=> '/',
-                   'pinterest'=> '/',
-                   'tiktok'=> '/',
-                   'whatsapp'=> '/',
-                   'phone'=> '0123456789',
-                   'email'=> 'example@gmail.com',
+                    'facebook' => '/',
+                    'instagram' => '/',
+                    'youtube' => '/',
+                    'pinterest' => '/',
+                    'tiktok' => '/',
+                    'whatsapp' => '/',
+                    'phone' => '0123456789',
+                    'email' => 'example@gmail.com',
                 ],
                 'seo' => [
-                    'meta_image' => 'Heloo',
-                    'meta_desc' => 'Heloo',
-                    'meta_title' => 'Heloo',
+                    'meta_image' => url('/images/vnwaLogoIcon.png'),
+                    'meta_desc' => 'Cuối cùng bạn đã đến. Sẵn sàng cho một trang web mới đẹp và hiệu quả? Chúng tôi,nhóm thiết kế web chuyên nghiệp của bạn, đang chờ bạn yêu cầu.',
+                    'meta_title' => 'Vinawebapp.com',
                 ]
             ],
         ]);
@@ -152,6 +153,36 @@ class AppearanceOneSeeder extends Seeder
                             'link' => '/',
                         ],
                     ]
+                ],
+                'SectionCommiment' => [
+                    [
+                        'image' => '/images/24.webp',
+                        'name' => 'Commit 1',
+                        'desc' => 'Commit 1',
+                    ],
+
+                ],
+                'SectionImages' => [
+                    [
+                        'image' => '/images/24.webp',
+                        'link' => '/',
+                    ],
+                    [
+                        'image' => '/images/24.webp',
+                        'link' => '/',
+                    ],
+                    [
+                        'image' => '/images/24.webp',
+                        'link' => '/',
+                    ],
+                    [
+                        'image' => '/images/24.webp',
+                        'link' => '/',
+                    ],
+                    [
+                        'image' => '/images/24.webp',
+                        'link' => '/',
+                    ],
                 ]
             ],
         ]);
