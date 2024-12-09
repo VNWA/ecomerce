@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted, ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { onMounted, ref, watchEffect } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import Banner from '@/Components/Banner.vue';
 import Dropdown from '@/Components/Dropdown.vue';
@@ -61,7 +61,15 @@ const backupData = () => {
         });
 }
 
-
+const localeImage = ref('en_db');
+const page = usePage();
+function removeDbSuffix() {
+    localeImage.value = localeImage.value.replace('_db', '');
+}
+watchEffect(async () => {
+    localeImage.value = page.props.current_db
+    removeDbSuffix();
+});
 
 const dbs = [
     {
@@ -103,16 +111,22 @@ const dbs = [
                     <!-- Primary Navigation Menu -->
                     <div class=" px-4 sm:px-6 lg:px-8">
                         <div class="flex justify-between h-16">
-                            <div class="flex">
+                            <div class="flex items-center">
+                                <div class="me-4">
+                                    <img :src="'/images/nation/' + localeImage + '.webp'" width="50" class="w-10"
+                                        alt="vinawebapp.com" >
+
+                                </div>
                                 <!-- Logo -->
                                 <!-- Navigation Links -->
+
                                 <div class="hidden space-x-8 sm:-my-px sm:flex">
                                     <NavLink :href="route('Media')" :active="route().current('Media')">
                                         Media
                                     </NavLink>
-                                    <NavLink :href="route('Contact')" :active="route().current('Contact')">
+                                    <!-- <NavLink :href="route('Contact')" :active="route().current('Contact')">
                                         Contact
-                                    </NavLink>
+                                    </NavLink> -->
                                 </div>
                             </div>
 
@@ -382,6 +396,7 @@ const dbs = [
                 <!-- Page Heading -->
                 <header v-if="$slots.header" class="bg-white shadow">
                     <div class=" py-6 px-4 sm:px-6 lg:px-8">
+
                         <slot name="header" />
                     </div>
                 </header>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\Color;
+use App\Models\Delivery;
 use App\Models\DeliveryCountry;
 use App\Models\Product;
 use App\Models\ProductCategory;
@@ -47,6 +48,7 @@ class ClientController extends Controller
         if ($staticPage['main']) {
             $staticPage['menu'] = StaticPage::where('is_show', 1)->whereNot('is_header', 1)->get(['name', 'slug']);
         }
+        $deliveries = Delivery::get(['name', 'image']);
 
         return response()->json([
             'logo' => $logo ? $logo->value : [],
@@ -56,6 +58,7 @@ class ClientController extends Controller
             'product_categories' => $product_categories,
             'colors' => $colors,
             'staticPage' => $staticPage,
+            'deliveries' => $deliveries,
         ], 200);
     }
     public function loadDataHomePage()

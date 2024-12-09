@@ -26,7 +26,6 @@
                                     </button>
                                     <div class="border px-2 py-1 rounded bg-white text-black cursor-pointer"
                                         @click="showEdit(index)" :class="{ 'text-purple-500': form.index === index }">
-                                        <Icon :icon="item.icon" class="me-1" />
                                         {{ item.name }}
                                     </div>
                                     <button v-if="index < data.length - 1" @click="moveItem(index, 1)"

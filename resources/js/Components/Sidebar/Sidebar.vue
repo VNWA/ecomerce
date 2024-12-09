@@ -127,7 +127,6 @@
                                 <Icon icon="fa6-solid:paintbrush" :class="{ 'me-2': !adminStore.isSidebarShow }" />
                                 <span class="show font-semibold  text-slate-200">Appearance</span>
                             </SideBarLink>
-
                         </li>
                         <li class="mb-3 ">
                             <SideBarLink :href="route('Setting')" :active="check('/settings')">

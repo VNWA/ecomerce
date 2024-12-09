@@ -9,13 +9,13 @@
                     <h3 class="font-bold text-xl">UI Block Manager</h3>
                     <button type="button" class="text-3xl font-bold me-5 hover:text-red-500"
                         @click="isModalShortCode = false">
-                        <icon :icon="['fas', 'x']" />
+                        <Icon icon="material-symbols:cancel"  class="text-3xl text-red-500"/>
                     </button>
                 </div>
                 <div class="bg-white min-h-96 w-full p-3 overflow-y-scroll">
 
                     <div class="grid grid-cols-4 gap-4">
-                        <div v-for="(item, index) in shortcodes" :key="index" class="col-span-1">
+                        <div v-for="(item, index) in shortcodes" class="col-span-1">
                             <div class="border border-black text-center cursor-pointer"
                                 @click="openUiBlockPopup(item.url)">
                                 <div class="flex items-center justify-center">
@@ -40,7 +40,7 @@
             </button>
             <button @click="isModalShortCode = true"
                 class="flex gap-4 items-center px-4 py-2 border border-black hover:bg-purple-500/90 hover:text-white uppercase font-bold">
-                <icon icon="fluent:code-block-16-filled" /> UI Block
+                <Icon icon="fluent:code-block-16-filled" /> UI Block
             </button>
         </div>
 

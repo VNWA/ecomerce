@@ -30,7 +30,7 @@
                                     <div class="flex items-center justify-start">
                                         <div
                                             class=" block border-r-0 rounded-r-none border h-full py-2 px-2 bg-gray-50 text-nowrap text-black ">
-                                            {{ url_web.origin }} /
+                                           /sp/
                                         </div>
                                         <TextInput id="slug" v-model="form.slug" type="text"
                                             class=" block w-full pe-14 rounded-l-none"
