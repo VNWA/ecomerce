@@ -18,7 +18,7 @@ return new class extends Migration
             $table->json('images');
             $table->foreignId('brand_id')->nullable()->constrained('brands')->onDelete('set null');
             $table->foreignId('color_id')->nullable()->constrained('colors')->onDelete('set null');
-            $table->text('sku')->unique();
+            $table->string('sku', 191)->unique();
             $table->string('size')->nullable();
             $table->string('included')->nullable();
             $table->integer('stock')->default(0);
